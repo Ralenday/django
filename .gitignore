@@ -1,0 +1,20 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+
+# Credenciales y configuracion local
+tienda_online/local_settings.py
+.env
+
+# Base de datos local y logs
+db.sqlite3
+*.log
+
+# Editor / sistema
+.vscode/
+.idea/
+.directory
