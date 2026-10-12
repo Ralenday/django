@@ -1,0 +1,55 @@
+name: Generate build and push to build branch
+
+on:
+  push:
+    branches:
+      - main  # Ejecuta cuando haces push a main
+
+permissions:
+  contents: write  # Da permiso al bot para hacer push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build and Push
+
+    steps:
+      # 1 Checkout del código
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2 Configurar Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: 'pip'
+
+      # 3 Instalar dependencias
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-libmysqlclient-dev build-essential pkg-config
+          pip install -r requirements.txt
+
+      # 4 Ejecutar las pruebas unitarias (en CI se usa SQLite)
+      - name: Run tests
+        run: python manage.py test
+
+      # 5 Generar la carpeta dist con el proyecto Django
+      - name: Build project
+        run: |
+          mkdir dist
+          git archive HEAD manage.py requirements.txt products tienda_online | tar -x -C dist
+
+      # 6 Publicar la carpeta dist a otra rama
+      - name: Publish build folder to "build" branch
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: self
+          BRANCH: build
+          FOLDER: dist
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MESSAGE: "Build from {sha}: {msg}"
