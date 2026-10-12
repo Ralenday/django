@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -107,6 +108,13 @@ DATABASES = {
         'PORT': '3306',
     }
 }
+
+# En GitHub Actions (variable CI) las pruebas corren con SQLite, sin servidor MySQL
+if os.environ.get('CI'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 
 # Password validation
