@@ -42,7 +42,7 @@ jobs:
       - name: Build project
         run: |
           mkdir dist
-          git archive HEAD manage.py requirements.txt products tienda_online | tar -x -C dist
+          git archive HEAD manage.py requirements.txt products users tienda_online | tar -x -C dist
 
       # 6 Publicar la carpeta dist a otra rama
       - name: Publish build folder to "build" branch
