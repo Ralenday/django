@@ -94,3 +94,11 @@ class ProductTestCase(TestCase):
         self.client.force_authenticate(user=None)
         response = self.client.get(f'/api/v1/products/{self.product.id}/precio-final/')
         self.assertEqual(response.status_code, 401)
+
+    def test_soap_pais_info(self):
+        response = self.client.get('/api/v1/soap/pais/?codigo=MX')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['codigo_iso'], 'MX')
+        self.assertEqual(response.data['pais'], 'Mexico')
+        self.assertEqual(response.data['moneda_iso'], 'MXN')
+
