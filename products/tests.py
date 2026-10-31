@@ -1,7 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 from .models import Category, Product
+
+User = get_user_model()
 
 
 # Pruebas del endpoint de categorías
@@ -9,7 +11,11 @@ class CategoryTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
         # Usuario de prueba para pasar la autenticación JWT (IsAuthenticated)
-        self.user = User.objects.create_user(username='test', password='test123')
+        self.user = User.objects.create_user(
+            username='test',
+            email='test@tiendaonline.com',
+            password='test123',
+        )
         self.client.force_authenticate(user=self.user)
         self.category = Category.objects.create(name='Electronica')
 
@@ -30,7 +36,11 @@ class CategoryTestCase(TestCase):
 class ProductTestCase(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='test', password='test123')
+        self.user = User.objects.create_user(
+            username='test',
+            email='test@tiendaonline.com',
+            password='test123',
+        )
         self.client.force_authenticate(user=self.user)
         self.category = Category.objects.create(name='Electronica')
         self.product = Product.objects.create(
