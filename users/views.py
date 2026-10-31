@@ -1,12 +1,13 @@
 from django.contrib.auth.hashers import make_password
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework import status
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from users.models import User
-from users.serializers import UserSerializer
+from users.serializers import RegisterUserSerializer, UserSerializer
 
 
 class UserApiViewSet(ModelViewSet):
@@ -53,3 +54,26 @@ class UserView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+
+class RegisterUserView(ModelViewSet):
+    permission_classes = [AllowAny]  # Permitir registro sin autenticación
+    serializer_class = RegisterUserSerializer
+    queryset = User.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = RegisterUserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {
+                    'message': 'Usuario registrado exitosamente',
+                    'user': {
+                        'username': user.username,
+                        'email': user.email,
+                        'telefono': user.telefono,
+                    },
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
