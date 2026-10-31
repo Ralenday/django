@@ -69,3 +69,22 @@ class UserApiTestCase(TestCase):
         self.assertEqual(self.user_cliente.password, hash_original)
         self.assertTrue(self.user_cliente.check_password('ClientePassword123!'))
         self.assertFalse(self.user_cliente.check_password('AdminPassword123!'))
+
+    def test_register_nuevo_usuario_publico(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.post(
+            '/api/v1/auth/register/',
+            {
+                'username': 'nuevousuario',
+                'email': 'nuevo@tiendaonline.com',
+                'password': 'NuevoPass2026!',
+                'telefono': '6537778899',
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data['message'], 'Usuario registrado exitosamente')
+        self.assertEqual(response.data['user']['email'], 'nuevo@tiendaonline.com')
+        nuevo = User.objects.get(email='nuevo@tiendaonline.com')
+        self.assertTrue(nuevo.check_password('NuevoPass2026!'))
+
