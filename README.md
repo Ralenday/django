@@ -1,4 +1,4 @@
-# Tienda Online — Full Stack Django REST + ReactJS + JWT + SOAP (RA2 y RA3)
+# Tienda Online — Full Stack Django REST + ReactJS + MySQL orquestado con Docker
 
 Proyecto Full Stack de **Tienda Online** desarrollado para la materia de Desarrollo Web Integral (IDGS 9-2). Integra un **Backend en Django REST Framework** (con documentación Swagger, modelo de usuario personalizado con login por correo electrónico y campo `telefono`, autenticación JWT y consumo de un Web Service SOAP público con `zeep`) y un **Frontend en React + Vite** (con React Router v6, Semantic UI, Formik/Yup, `AuthContext`, registro de usuarios y consumo de APIs de terceros mediante `fetch`).
 
@@ -6,12 +6,18 @@ Proyecto Full Stack de **Tienda Online** desarrollado para la materia de Desarro
 
 ```text
 django-project/
+├── docker-compose.yml         # Orquesta los servicios db (MySQL), backend (Django) y frontend (React)
+├── Dockerfile                 # Imagen del Backend (Python + librerías de MySQL)
+├── .dockerignore
+├── .env.example               # Plantilla de variables de entorno (copiar como .env)
 ├── manage.py
 ├── requirements.txt           # Dependencias del Backend (Django, DRF, SimpleJWT, drf-yasg, corsheaders, zeep)
 ├── tienda_online/             # Configuración del proyecto, CORS, JWT y Swagger
 ├── users/                     # Modelo User (login por email + telefono), CRUD, /auth/me/ y /auth/register/
 ├── products/                  # CRUD de productos/categorías, Facade /precio-final/ y cliente SOAP /soap/pais/
 └── frontend/                  # Aplicación Frontend en React + Vite
+    ├── Dockerfile             # Imagen del Frontend (Node.js + Vite en 0.0.0.0)
+    ├── .dockerignore
     ├── package.json
     ├── .env.example
     └── src/
@@ -23,7 +29,54 @@ django-project/
         └── routes/            # Sistema de rutas con React Router DOM v6
 ```
 
-## Instrucciones de Instalación y Ejecución
+## Ejecución con Docker (recomendada)
+
+Solo se necesita tener instalado **Docker** con **Docker Compose**; no hace falta instalar Python, Node.js ni MySQL.
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/Ralenday/django.git
+cd django
+```
+
+### 2. Crear el archivo de variables de entorno
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y cambia las contraseñas de MySQL y la clave secreta de Django. Este archivo **no** se sube a GitHub.
+
+### 3. Levantar todo el sistema con un solo comando
+
+```bash
+docker compose up -d --build
+docker ps
+```
+
+Se crean tres contenedores conectados por la red interna `red-tienda`:
+
+| Servicio   | Contenedor        | URL                                   |
+|------------|-------------------|---------------------------------------|
+| `db`       | `tienda-db`       | MySQL 8.4 (solo dentro de la red)     |
+| `backend`  | `tienda-backend`  | http://localhost:8000 (Swagger)       |
+| `frontend` | `tienda-frontend` | http://localhost:5173                 |
+
+El backend espera a que MySQL esté listo (healthcheck) y aplica las migraciones automáticamente al arrancar.
+
+### 4. Comandos útiles
+
+```bash
+docker compose logs -f backend                                   # Ver los logs del backend
+docker compose exec backend python manage.py createsuperuser     # Crear un administrador
+docker compose down                                              # Apagar (los datos se conservan)
+docker compose down -v                                           # Apagar y borrar el volumen de MySQL
+```
+
+Los datos de MySQL se guardan en el volumen `datos-mysql`, por lo que los usuarios registrados siguen existiendo después de `docker compose down` y `docker compose up`.
+
+## Ejecución local sin Docker
 
 ### 1. Clonar el repositorio
 

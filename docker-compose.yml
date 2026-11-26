@@ -1,0 +1,61 @@
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.4
+    container_name: tienda-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - datos-mysql:/var/lib/mysql
+    networks:
+      - red-tienda
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Backend en Django REST Framework
+  backend:
+    build: .
+    container_name: tienda-backend
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - red-tienda
+
+  # Frontend en React + Vite
+  frontend:
+    build: ./frontend
+    container_name: tienda-frontend
+    restart: unless-stopped
+    environment:
+      VITE_BASE_API_URL: ${VITE_BASE_API_URL}
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - red-tienda
+
+volumes:
+  datos-mysql:
+
+networks:
+  red-tienda:

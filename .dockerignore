@@ -1,0 +1,19 @@
+# El frontend tiene su propio Dockerfile
+frontend/
+# Entornos virtuales, caché y bases locales
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+*.log
+# Secretos y metadatos que no van dentro de la imagen
+.env
+.git/
+.github/
+.vscode/
+.idea/
+docker-compose.yml
+Dockerfile
+.dockerignore
+README.md
