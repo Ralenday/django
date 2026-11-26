@@ -13,11 +13,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-jfc7ub=v!4l7j#7_366or7ii^&lfy3t!q)0)e(wo&+b46sf#zy'
+# En Docker la clave secreta y el modo DEBUG llegan desde el archivo .env
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-jfc7ub=v!4l7j#7_366or7ii^&lfy3t!q)0)e(wo&+b46sf#zy',
+)
 
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Permite conexiones desde cualquier host (necesario dentro del contenedor)
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -114,8 +119,18 @@ DATABASES = {
     }
 }
 
+# En Docker Compose se definen DB_HOST, DB_NAME, etc. y se usa el contenedor MySQL
+if os.environ.get('DB_HOST'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+    }
 # Si se define USE_MYSQL=1 se conecta al servidor MySQL local
-if os.environ.get('USE_MYSQL'):
+elif os.environ.get('USE_MYSQL'):
     try:
         from .local_settings import DB_PASSWORD
     except ImportError:
@@ -169,6 +184,9 @@ MAILERS = {
 }
 
 # Configuración de CORS para comunicación con el Frontend en React
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
 CORS_ALLOW_CREDENTIALS = True
 
